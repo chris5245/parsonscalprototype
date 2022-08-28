@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="compoundStyles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar__container">
+          <a href="#home" id="navbar__logo">ParsonsCal</a>
+          <div class="navbar__toggle" id="mobile-menu">
+            <span class="bar"></span> <span class="bar"></span>
+            <span class="bar"></span>
+          </div>
+          <ul class="navbar__menu">
+            <li class="navbar__item">
+              <a href="index.html" class="navbar__links" id="home-page">Home</a>
+            </li>
+            <li class="navbar__item">
+              <a href="yearlysave.html" class="navbar__links" id="about-page">Savings Simulator</a>
+            </li>
+            <li class="navbar__item">
+              <a href="compoundinterest.html" class="navbar__links" id="services-page"
+                >Business Valuation</a
+              >
+            </li>
+            <li class="navbar__item">
+              <a href="expenses.html" class="navbar__links" id="services-page">Expenses Simulator</a>
+            </li>
+            <li class="navbar__item">
+                <a href="index.html" class="navbar__links"
+                id="services-page">Stock Market Simulator</a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+      <div id="bizcalcontainer">
+        <h1>Business Valuation</h1>
+        <label id="investLabel">Initial Investment</label>
+        <input type="text" id="InitInvest">
+        <label id="yearsLabel">Number of Years</label>
+        <input type="text" id="years">
+        <label id="incomeLabel">Starting Yearly Income</label>
+        <input type="text" id="income">
+        <label id="expensesLabel">Starting Yearly Expenses</label>
+        <input type="text" id="expenses">
+        <label id="incomeGrowthLabel">Annual Growth Of Income</label>
+        <input type="text" id="incomeGrowth">
+        <label id="expensesGrowthLabel">Annual Growth Of Expenses</label>
+        <input type="text" id="expensesGrowth">
+        <label id="waccLabel">WACC Rate</label>
+        <input type="text" id="wacc">
+        <button type="button" onclick="GenerateInfo()" id="submit">Calculate</button>
+        <button type="button" onclick="removeData()" id="refresh">Refresh</button>
+      </div>
+      <div id="div1"></div>
+      <div id="profitDiv"></div>
+      <div class="container">
+        <canvas id="incomeGraph"></canvas>
+      </div>
+      <script>
+        yearly_cashflows_array = [];
+        discounted_cashflows_array = [];
+        income_array = [];
+        expenses_array = [];
+        num_of_years = [];
+
+        function removeData() {
+          window.location.reload();
+        }
+
+        function getYears() {
+          let years = parseInt(document.getElementById('years').value);
+          return years;
+        }
+
+        function getInitialInvestment() {
+          let initialInvestment = parseFloat(document.getElementById('InitInvest').value);
+          return initialInvestment
+        }
+        
+        function getStartingIncome() {
+          let startingIncome = parseFloat(document.getElementById('income').value);
+          return startingIncome
+        }
+
+        function getStartingExpenses() {
+          let startingExpenses = parseFloat(document.getElementById('expenses').value);
+          return startingExpenses
+        }
+
+        function getWacc() {
+          let wacc = parseFloat(document.getElementById('wacc').value);
+          return wacc;
+        }
+
+        function getIncomeGrowth() {
+          let incomeGrowth = parseFloat(document.getElementById('incomeGrowth').value);
+          return incomeGrowth;
+        }
+
+        function getExpenseGrowth() {
+          let expenseGrowth = parseFloat(document.getElementById('expensesGrowth').value);
+          return expenseGrowth
+        }
+
+        function getCashFlowsArray(income, expenses, expenseGrowth, incomeGrowth, years) {
+          let cashflow = 0;
+          for(let i = 0; i < years; i++) {
+            if (i == 0) {
+              cashflow = income - expenses;
+              yearly_cashflows_array.push(cashflow)
+              income_array.push(income)
+              expenses_array.push(expenses)
+              num_of_years.push(i+1)
+            }
+            else {
+              newIncome = income + (income * incomeGrowth)
+              newExpenses = expenses + (expenses * expenseGrowth)
+              income = newIncome
+              expenses = newExpenses
+              income_array.push(income)
+              expenses_array.push(expenses) 
+              cashflow = income - expenses
+              yearly_cashflows_array.push(cashflow)
+              num_of_years.push(i+1)
+            }
+          }
+        }
+
+        function getTotalIncome(years) {
+            let totalincome = 0;
+
+            for(let i = 0; i < years; i++) {
+              totalincome = totalincome + income_array[i];
+            }
+
+            return totalincome;
+        }
+
+        function getTotalExpenses(years) {
+            let totalExpenses = 0;
+
+            for(let i = 0; i < years; i++) {
+              totalExpenses = totalExpenses + expenses_array[i]
+            }
+
+            return totalExpenses;
+        }
+        function getYearArray() {
+          numOfYears = num_of_years.length
+          return numOfYears
+        }
+
+        function GenerateInfo() {
+          let years = getYears()
+          let initialInvestment = getInitialInvestment()
+          let startingIncome = getStartingIncome()
+          let startingExpense = getStartingExpenses()
+          let WACC = getWacc()
+          let incomeGrowth = getIncomeGrowth()
+          let expensesGrowth = getExpenseGrowth()
+          getCashFlowsArray(startingIncome, startingExpense, expensesGrowth, incomeGrowth, years)
+          let discounted_cashflows = 0
+          total_discounted_cashflow = 0
+
+          for(let i = 0; i < years; i++) {
+              let year = i + 1
+              discounted_cashflows = (yearly_cashflows_array[i] / (1 + WACC) ** year)
+              console.log(yearly_cashflows_array[i])
+              console.log(discounted_cashflows)
+              total_discounted_cashflow = total_discounted_cashflow + discounted_cashflows
+              var yearHeading = document.createElement("p");
+              var nodeHeading = document.createTextNode(`Year ${year}
+              : `);
+              var yearDiscountedCashflow = document.createElement("p");
+              var nodeDiscountedCashflow = document.createTextNode(`${discounted_cashflows}`);
+              var totalDiscountedCashflow = document.createElement("p");
+              var nodetotalDiscountedCashflow = document.createTextNode(`Total: ${total_discounted_cashflow}`);
+
+              var hrbreak = document.createElement('hr');
+
+              yearHeading.appendChild(nodeHeading);
+
+              yearDiscountedCashflow.appendChild(nodeDiscountedCashflow)
+
+              totalDiscountedCashflow.appendChild(nodetotalDiscountedCashflow)
+              var element = document.getElementById("div1");
+              element.appendChild(yearHeading)
+              element.appendChild(yearDiscountedCashflow)
+              element.appendChild(totalDiscountedCashflow)
+              element.appendChild(hrbreak)
+            
+          }
+
+          let npv = total_discounted_cashflow - initialInvestment
+
+          var npvDisplay = document.createElement('p');
+          var nodeNpvDisplay = document.createTextNode(`Total NPV: $ ${npv}`)
+
+          var element = document.getElementById('div1');
+          element.appendChild(npvDisplay)
+
+          if(npv > 0) {
+            let text = "This Business is Profitable";
+            var profitDisplay = document.createElement('h1');
+            var nodeProfitDisplay = document.createTextNode(text);
+            profitDisplay.appendChild(nodeProfitDisplay)
+
+            var element = document.getElementById('profitDiv');
+            element.appendChild(profitDisplay)
+
+          }
+
+          else if(npv === 0) {
+            let text = "This Business Broke Even";
+            var profitDisplay = document.createElement('h1');
+            var nodeProfitDisplay = document.createTextNode(text);
+            profitDisplay.appendChild(nodeProfitDisplay)
+
+            var element = document.getElementById('profitDiv');
+            element.appendChild(profitDisplay)
+          }
+
+          else if(npv < 0) {
+            let text = "This Business will lose money";
+            var profitDisplay = document.createElement('h1');
+            var nodeProfitDisplay = document.createTextNode(text);
+            profitDisplay.appendChild(nodeProfitDisplay)
+
+            var element = document.getElementById('profitDiv');
+            element.appendChild(profitDisplay)
+          }
+
+          createChart()
+
+        }
+
+        function createChart() {
+        let income = getTotalIncome(getYearArray())
+        let expenses = getTotalExpenses(getYearArray())
+
+        const CHART = document.getElementById('incomeGraph')
+        let pieChart = new Chart(CHART, {
+            type: 'pie',
+            data: {
+              labels: ['Income', 'Expenses'],
+              datasets: [
+                {
+                  label: 'Points',
+                  backgroundColor: ['#adada9', '#525256'],
+                  data: [income, expenses]
+                }
+              ]
+            }
+        });
+    }
+
+      </script>
+      <script src="mobilemenu.js"></script>
+</body>
+</html>

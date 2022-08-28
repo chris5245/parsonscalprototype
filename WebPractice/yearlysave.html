@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar__container">
+          <a href="#home" id="navbar__logo">ParsonsCal</a>
+          <div class="navbar__toggle" id="mobile-menu">
+            <span class="bar"></span> <span class="bar"></span>
+            <span class="bar"></span>
+          </div>
+          <ul class="navbar__menu">
+            <li class="navbar__item">
+              <a href="index.html" class="navbar__links" id="home-page">Home</a>
+            </li>
+            <li class="navbar__item">
+              <a href="yearlysave.html" class="navbar__links" id="about-page">Savings Simulator</a>
+            </li>
+            <li class="navbar__item">
+              <a href="compoundinterest.html" class="navbar__links" id="services-page"
+                >Business Valuation</a
+              >
+            </li>
+            <li class="navbar__item">
+              <a href="expenses.html" class="navbar__links" id="services-page">Expenses Simulator</a>
+            </li>
+            <li class="navbar__item">
+                <a href="index.html" class="navbar__links"
+                id="services-page">Stock Market Simulator</a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+    <div class="calcontainer">
+        <h1>Weekly Pay Calculator</h1>
+        <label id="yearsLabel">Number of years</label>
+        <input type="text" id="years">
+        <label id="saveLabel">Starting Weekly Save</label>
+        <input type="text" id="save">
+        <label id="percentLabel">Percent Weekly Save increases Weekly</label>
+        <input type="text" id="percent">
+        <button type="button" onclick="GenerateInfo()" id="submit">Calculate</button>
+        <button type="button" onclick="removeData()" id="refresh">Refresh</button>
+    </div>
+    <div id="div1"></div>
+    <div class="container">
+        <canvas id="my-chart"></canvas>
+    </div>
+</body>
+<script>
+    var savedArray = []
+    var totalArray = []
+    var num_of_years = []
+
+    function getYears() {
+        let years = parseInt(document.getElementById("years").value);
+        return years;
+    }
+    function getWeeklyPay() {
+        let pay = parseInt(document.getElementById("save").value);
+        return pay;
+    }
+    function getPercent() {
+        let percent = parseFloat(document.getElementById("percent").value);
+        return percent;
+    }
+
+    function getYearsLength() {
+        for(let i = 1; i <= savedArray.length; i++){
+            num_of_years.push(i)
+        }
+    }
+
+    function removeData() {
+        window.location.reload()
+        
+    }
+    function GenerateInfo() {
+        let years = getYears();
+        let pay = getWeeklyPay();
+        let percent = getPercent();
+        let total_pay = 0;
+        let current_year_save = 0;
+        let year_weekly_raise = 0;
+
+        for(let i = 1; i <= years; i++) {
+            current_year = i;
+            if(i === 1) {
+                current_year_save = pay * 52;
+
+                var yearHeading = document.createElement("p");
+                var nodeHeading = document.createTextNode(`Year ${i}: `);
+
+                yearHeading.id = "year-heading";
+
+                var hrbreak = document.createElement("hr")
+                var yearSave = document.createElement("p");
+
+                yearSave.id = "year-save"
+                var nodeSave = document.createTextNode(`${current_year_save}`);
+            
+                yearHeading.appendChild(nodeHeading);
+                yearSave.appendChild(nodeSave)
+                var element = document.getElementById("div1");
+                element.appendChild(yearHeading);
+                element.appendChild(yearSave);
+                element.appendChild(hrbreak)
+
+                savedArray.push(current_year_save)
+
+            }
+            else {
+                year_weekly_raise = current_year_save * percent
+                current_year_save = current_year_save + year_weekly_raise
+                total_pay = current_year_save + total_pay
+                newdiv = i
+
+
+                var yearHeading = document.createElement("p");
+                var nodeHeading = document.createTextNode(`Year ${i}: `);
+
+                yearHeading.id = "year-heading";
+                var hrbreak1 = document.createElement("hr")
+                var yearSave = document.createElement("p");
+
+                yearSave.id = "year-save"
+                var nodeSave = document.createTextNode(`${current_year_save}`);
+                var totalPayHeading = document.createElement("p");
+
+                totalPayHeading.id = "total_save"
+                var nodeTotalPay = document.createTextNode(`Total Pay: ${total_pay}`) 
+
+                yearHeading.appendChild(nodeHeading);
+                yearSave.appendChild(nodeSave)
+                totalPayHeading.appendChild(nodeTotalPay)
+                var newelement = document.getElementById("div1");
+                newelement.appendChild(yearHeading);
+                newelement.appendChild(yearSave);
+                newelement.appendChild(totalPayHeading)
+                newelement.appendChild(hrbreak1)
+
+                savedArray.push(current_year_save)
+                totalArray.push(total_pay)
+                
+            }   
+        }
+        createChart()
+    }
+
+    function createChart() {
+        getYearsLength()
+        let myChart = document.getElementById("my-chart").getContext('2d')
+
+        let barChart = new Chart(myChart, {
+            type: 'bar', 
+            data: {
+                labels: num_of_years,
+                datasets: [{
+                    label: "Dollars",
+                    data: savedArray
+                }]
+            },
+            options: {}
+
+        });
+    }
+</script>
+<script src="mobilemenu.js"></script>
+</html>
